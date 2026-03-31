@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dobkkllbwwqtk"]
+
+[ext_resource type="Script" uid="uid://cte1x4oeoel2n" path="res://Level/Elements/flex_pole.gd" id="1_3ujxc"]
+
+[node name="FlexPole" type="Node3D" unique_id=9283019]
+script = ExtResource("1_3ujxc")

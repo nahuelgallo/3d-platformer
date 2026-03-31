@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://oa5j0pykhywp"]
+
+[ext_resource type="Material" uid="uid://g5x7g5rmse4o" path="res://Player/sophia_skin/model/level/cactus/materials/cactus_body.material" id="1_mscwf"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8iy6n"]
+size = Vector3(30, 3, 30)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mscwf"]
+material = ExtResource("1_mscwf")
+size = Vector3(30, 3, 30)
+
+[node name="Floor" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_8iy6n")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_mscwf")

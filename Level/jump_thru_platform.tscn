@@ -1,0 +1,24 @@
+[gd_scene load_steps=6 format=3 uid="uid://rfsyxigvaslm"]
+
+[ext_resource type="Script" uid="uid://cqbbseitvqggd" path="res://Level/Elements/jump_thru_platform.gd" id="1_4rmy7"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fdq33"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_54dcw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_txo5f"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_5c6rh"]
+material = SubResource("StandardMaterial3D_txo5f")
+
+[node name="AnimatableBody3D" type="AnimatableBody3D"]
+script = ExtResource("1_4rmy7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_fdq33")
+debug_color = Color(1.4763637, 0.40126523, 0.7791786, 0.9647059)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CollisionShape3D"]
+material_override = SubResource("StandardMaterial3D_54dcw")
+mesh = SubResource("BoxMesh_5c6rh")
+skeleton = NodePath("../..")

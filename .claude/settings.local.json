@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(sed:*)",
+      "Bash(python3:*)",
+      "Bash(py:*)",
+      "Bash(python:*)",
+      "Bash(npm i:*)"
+    ]
+  }
+}

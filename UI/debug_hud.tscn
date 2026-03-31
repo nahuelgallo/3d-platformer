@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://UI/debug_hud.gd" id="1_script"]
+
+[node name="DebugHUD" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_script")
+
+[node name="Label" type="Label" parent="."]
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 350.0
+offset_bottom = 220.0
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "=== DEBUG (F3) ==="
+
+[node name="AbilityBar" type="HBoxContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 50.0
+grow_horizontal = 0
+alignment = 2
+
+[node name="RunIcon" type="Label" parent="AbilityBar"]
+theme_override_font_sizes/font_size = 28
+text = "🏃"
+
+[node name="DashIcon" type="Label" parent="AbilityBar"]
+theme_override_font_sizes/font_size = 28
+text = "💨"
+
+[node name="FastDropIcon" type="Label" parent="AbilityBar"]
+theme_override_font_sizes/font_size = 28
+text = "⬇️"
+
+[node name="SlideIcon" type="Label" parent="AbilityBar"]
+theme_override_font_sizes/font_size = 28
+text = "👟"

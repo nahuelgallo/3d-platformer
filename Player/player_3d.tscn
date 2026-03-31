@@ -1,0 +1,116 @@
+[gd_scene format=3 uid="uid://dbqb4ovs8ht8g"]
+
+[ext_resource type="PackedScene" uid="uid://sho6mw73y4pw" path="res://Player/robot_skin/robot_skin.tscn" id="1_0qcnn"]
+[ext_resource type="Script" uid="uid://ct6pbgoo5blwq" path="res://Player/player_3dEdited1.gd" id="1_cp0cc"]
+[ext_resource type="PackedScene" path="res://UI/debug_hud.tscn" id="3_debug"]
+[ext_resource type="Script" uid="uid://dfg60rtulxv8h" path="res://Core/StateMachine/state_machine.gd" id="4_443md"]
+[ext_resource type="PackedScene" uid="uid://drcrosshair01" path="res://UI/crosshair.tscn" id="4_xgipm"]
+[ext_resource type="Script" uid="uid://dj422i342nrab" path="res://Player/States/idle_state.gd" id="5_p1it8"]
+[ext_resource type="Script" uid="uid://dy4klcsvlw5u2" path="res://Player/States/walk_state.gd" id="6_rwybp"]
+[ext_resource type="Script" uid="uid://blgwu2oiid81d" path="res://Player/States/run_state.gd" id="7_7yrx8"]
+[ext_resource type="Script" uid="uid://buemw7rbj8lod" path="res://Player/States/airborne_state.gd" id="8_2c8op"]
+[ext_resource type="Script" uid="uid://bis3akjn4viv" path="res://Player/States/crouch_state.gd" id="9_xgipm"]
+[ext_resource type="Script" uid="uid://btq7w0sy53r8r" path="res://Player/States/slide_state.gd" id="10_p1it8"]
+[ext_resource type="Script" uid="uid://cfllwtgar86mm" path="res://Player/States/aim_state.gd" id="11_2c8op"]
+[ext_resource type="Script" uid="uid://dte4ayg5ybcca" path="res://Player/Arms/arm_socket.gd" id="11_7yrx8"]
+[ext_resource type="Script" uid="uid://gcpgq4lytp7k" path="res://Player/Arms/FistArm/fist_arm.gd" id="12_2c8op"]
+[ext_resource type="Script" uid="uid://djp55gh6mec35" path="res://Player/States/hooked_state.gd" id="13_cdqpx"]
+[ext_resource type="Script" uid="uid://1uvgham3etmw" path="res://Player/States/ledge_grab_state.gd" id="14_p4qna"]
+[ext_resource type="Script" uid="uid://l8t0f2v530w1" path="res://Player/States/flex_pole_state.gd" id="15_p0r1v"]
+[ext_resource type="Script" uid="uid://bsq307ho6gt83" path="res://Player/Arms/GrapplingHook/grappling_hook_arm.gd" id="16_p4qna"]
+[ext_resource type="Script" uid="uid://bab7tj1r16wrg" path="res://Player/hook_crosshair.gd" id="18_hykwr"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cp0cc"]
+radius = 0.3
+height = 2.2990723
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_cp0cc"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_443md"]
+radius = 0.3
+height = 0.8
+
+[node name="Player3D" type="CharacterBody3D" unique_id=861748261]
+collision_layer = 7
+collision_mask = 5
+floor_block_on_wall = false
+floor_snap_length = 0.05
+script = ExtResource("1_cp0cc")
+
+[node name="RobotSkin" parent="." unique_id=1923158414 instance=ExtResource("1_0qcnn")]
+unique_name_in_owner = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=794272321]
+transform = Transform3D(0.8, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1605362, -0.001981616)
+shape = SubResource("CapsuleShape3D_cp0cc")
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=678333750]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=1579015059]
+unique_name_in_owner = true
+transform = Transform3D(-1, -1.6980506e-08, 8.5757826e-08, 0, 0.9809552, 0.19423436, -8.742278e-08, 0.19423436, -0.9809552, -1.4814519, 1.0271251, 0)
+shape = SubResource("SphereShape3D_cp0cc")
+spring_length = 3.0
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=898244197]
+unique_name_in_owner = true
+fov = 80.0
+
+[node name="DebugHUD" parent="." unique_id=1731862274 instance=ExtResource("3_debug")]
+
+[node name="Crosshair" parent="." unique_id=66259039 instance=ExtResource("4_xgipm")]
+
+[node name="PlayerStateMachine" type="Node" parent="." unique_id=1151366089 node_paths=PackedStringArray("initial_state")]
+script = ExtResource("4_443md")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="PlayerStateMachine" unique_id=1644783836]
+script = ExtResource("5_p1it8")
+
+[node name="Walk" type="Node" parent="PlayerStateMachine" unique_id=2105411378]
+script = ExtResource("6_rwybp")
+
+[node name="Run" type="Node" parent="PlayerStateMachine" unique_id=1587422305]
+script = ExtResource("7_7yrx8")
+
+[node name="Airborne" type="Node" parent="PlayerStateMachine" unique_id=30873532]
+script = ExtResource("8_2c8op")
+
+[node name="Crouch" type="Node" parent="PlayerStateMachine" unique_id=256712106]
+script = ExtResource("9_xgipm")
+
+[node name="Slide" type="Node" parent="PlayerStateMachine" unique_id=491067203]
+script = ExtResource("10_p1it8")
+
+[node name="Punch" type="Node" parent="PlayerStateMachine" unique_id=1942618971]
+
+[node name="Aim" type="Node" parent="PlayerStateMachine" unique_id=688771730]
+script = ExtResource("11_2c8op")
+
+[node name="Hooked" type="Node" parent="PlayerStateMachine" unique_id=1065079026]
+script = ExtResource("13_cdqpx")
+
+[node name="LedgeGrab" type="Node" parent="PlayerStateMachine" unique_id=1486882604]
+script = ExtResource("14_p4qna")
+
+[node name="FlexPole" type="Node" parent="PlayerStateMachine" unique_id=290705204]
+script = ExtResource("15_p0r1v")
+
+[node name="CrouchCollisionShape3D" type="CollisionShape3D" parent="." unique_id=1257013255]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0.04)
+shape = SubResource("CapsuleShape3D_443md")
+disabled = true
+
+[node name="ArmSocket" type="Node3D" parent="." unique_id=2031309049]
+script = ExtResource("11_7yrx8")
+
+[node name="FirstArm" type="Node3D" parent="ArmSocket" unique_id=629360393]
+script = ExtResource("12_2c8op")
+
+[node name="GrapplingHook" type="Node3D" parent="ArmSocket" unique_id=673828093]
+script = ExtResource("16_p4qna")
+
+[node name="HookCrosshair" type="Node3D" parent="." unique_id=628400885]
+script = ExtResource("18_hykwr")

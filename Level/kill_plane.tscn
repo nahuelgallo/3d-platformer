@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://bql2u14eh8e6n"]
+
+[ext_resource type="Script" uid="uid://cjamxrkwsraau" path="res://Level/Elements/kill_plane.gd" id="1_xhvop"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jbyio"]
+size = Vector3(600, 1, 600)
+
+[node name="Area3D" type="Area3D"]
+script = ExtResource("1_xhvop")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_jbyio")
+debug_color = Color(0.3733972, 5.241187, 4.9929523, 1)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]

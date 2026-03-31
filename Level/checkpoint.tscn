@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://cgehhxfo0sw25"]
+
+[ext_resource type="Script" uid="uid://cbc3utumok5pe" path="res://Level/Elements/checkpoint.gd" id="1_2imaw"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_2imaw"]
+radius = 0.19813047
+
+[sub_resource type="SphereMesh" id="SphereMesh_2imaw"]
+
+[node name="Area3D" type="Area3D"]
+script = ExtResource("1_2imaw")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.57679164, 0)
+shape = SubResource("SphereShape3D_2imaw")
+debug_color = Color(1.0081415, 0.4304135, 0.10440702, 1)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.34, 0, 0, 0, 0.34, 0, 0, 0, 0.34, 0, 0.58397484, 0)
+mesh = SubResource("SphereMesh_2imaw")
