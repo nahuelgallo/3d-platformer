@@ -87,3 +87,4 @@ switch_arm={
 3d_physics/layer_5="kill_zones"
 3d_physics/layer_6="interactables"
 3d_physics/layer_7="flex_poles"
+3d_physics/layer_8="no_hook"

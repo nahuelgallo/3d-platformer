@@ -3,10 +3,13 @@ class_name HookProjectile extends Node3D
 # Proyectil del grappling hook. Viaja en linea recta y detecta impacto
 # con HookRings (layer 4) y JumpThruPlatforms (layer 3) via raycast frame a frame.
 
-signal hit_target(hit_position: Vector3, collider: Node)
+signal hit_target(hit_position: Vector3, collider: Node, hit_normal: Vector3)
 signal missed
 
+const NO_HOOK_BITMASK := 128  # Layer 8 = bit 7
+
 var _active := false
+var _hit_normal := Vector3.ZERO
 var _direction := Vector3.ZERO
 var _speed := 0.0
 var _max_distance := 0.0
@@ -64,10 +67,15 @@ func _physics_process(delta: float):
 
 	var result = space.intersect_ray(query)
 	if result:
+		# Filtrar superficies no-hookables (layer 8)
+		var collider = result.collider
+		if collider is CollisionObject3D and (collider.collision_layer & NO_HOOK_BITMASK):
+			return  # Ignorar, seguir volando
 		global_position = result.position
+		_hit_normal = result.normal
 		_active = false
 		set_physics_process(false)
-		hit_target.emit(result.position, result.collider)
+		hit_target.emit(result.position, collider, result.normal)
 		return
 
 	# Si excede distancia maxima, fallo
@@ -88,9 +96,15 @@ func _get_player() -> CharacterBody3D:
 	return null
 
 
+## Normal de la superficie donde impacto
+func get_hit_normal() -> Vector3:
+	return _hit_normal
+
+
 ## Resetea el proyectil
 func reset() -> void:
 	_active = false
 	visible = false
 	set_physics_process(false)
 	global_position = Vector3.ZERO
+	_hit_normal = Vector3.ZERO

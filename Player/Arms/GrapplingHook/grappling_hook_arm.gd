@@ -16,6 +16,7 @@ var _state := HookState.IDLE
 var _projectile: HookProjectile
 var _rope: RopeVisual
 var _attach_point := Vector3.ZERO
+var _surface_normal := Vector3.DOWN  # Normal de la superficie donde se engancho
 var _attached_collider: Node = null
 var _charge_timer := 0.0
 var _current_max_distance := 0.0  # Distancia calculada segun carga
@@ -108,9 +109,10 @@ func _raycast_target_point(charge_ratio: float) -> Vector3:
 	return ray_origin + ray_dir * _current_max_distance
 
 
-func _on_hook_hit(hit_position: Vector3, collider: Node) -> void:
+func _on_hook_hit(hit_position: Vector3, collider: Node, hit_normal: Vector3) -> void:
 	_state = HookState.ATTACHED
 	_attach_point = hit_position
+	_surface_normal = hit_normal
 	_attached_collider = collider
 	var rope_length = player.global_position.distance_to(_attach_point)
 
@@ -123,7 +125,7 @@ func _on_hook_hit(hit_position: Vector3, collider: Node) -> void:
 	else:
 		Events.hook_attached.emit(hit_position)
 		arm_state_changed.emit("Hooked")
-		print("GrapplingHook: enganchado en %s (distancia: %.1f)" % [hit_position, rope_length])
+		print("GrapplingHook: enganchado en %s (normal: %s, distancia: %.1f)" % [hit_position, hit_normal, rope_length])
 
 
 ## Busca si el collider o su padre es un FlexPole
@@ -174,6 +176,10 @@ func get_rope_length() -> float:
 
 func get_attached_collider() -> Node:
 	return _attached_collider
+
+
+func get_surface_normal() -> Vector3:
+	return _surface_normal
 
 
 func _physics_process(delta: float):

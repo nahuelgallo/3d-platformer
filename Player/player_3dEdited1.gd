@@ -242,10 +242,12 @@ func _on_arm_state_changed(new_state: String) -> void:
 				var arm = _arm_socket.current_arm
 				var attach_point = arm.get_attach_point() if arm.has_method("get_attach_point") else Vector3.ZERO
 				var rope_length = arm.get_rope_length() if arm.has_method("get_rope_length") else 5.0
+				var surface_normal = arm.get_surface_normal() if arm.has_method("get_surface_normal") else Vector3.DOWN
 				if _state_machine:
 					_state_machine.transition_to("Hooked", {
 						"attach_point": attach_point,
-						"rope_length": rope_length
+						"rope_length": rope_length,
+						"surface_normal": surface_normal
 					})
 		"FlexPoleHooked":
 			if _arm_socket and _arm_socket.current_arm:

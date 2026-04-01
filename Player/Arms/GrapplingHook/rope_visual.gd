@@ -31,6 +31,20 @@ func update_points(from: Vector3, to: Vector3) -> void:
 	visible = true
 
 
+## Dibuja la cuerda pasando por multiples puntos (para rope wrapping)
+func update_multi_segment(points: Array) -> void:
+	_mesh.clear_surfaces()
+	if points.size() < 2:
+		visible = false
+		return
+	_mesh.surface_begin(Mesh.PRIMITIVE_LINES, _material)
+	for i in range(points.size() - 1):
+		_mesh.surface_add_vertex(points[i])
+		_mesh.surface_add_vertex(points[i + 1])
+	_mesh.surface_end()
+	visible = true
+
+
 ## Oculta la cuerda
 func hide_rope() -> void:
 	_mesh.clear_surfaces()
