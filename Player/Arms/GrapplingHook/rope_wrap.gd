@@ -99,7 +99,8 @@ func _check_wrap(player_pos: Vector3, space: PhysicsDirectSpaceState3D, player_r
 
 	# Nuevo wrap point: ligeramente alejado de la superficie para evitar penetracion
 	var normal: Vector3 = result.get("normal", Vector3.UP)
-	var new_wrap_point := result["position"] + normal * WRAP_OFFSET
+	var hit_pos: Vector3 = result["position"]
+	var new_wrap_point: Vector3 = hit_pos + normal * WRAP_OFFSET
 	wrap_points.append(new_wrap_point)
 
 

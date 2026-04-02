@@ -6,7 +6,7 @@ class_name HookCrosshair extends Node3D
 
 # === CONSTANTES ===
 const DETECTION_RADIUS := 20.0          # Mismo que hook_max_distance
-const MAX_ANGLE_DEG := 30.0             # Cono de snap angular para objetos especiales
+const MAX_ANGLE_DEG := 12.0             # Cono de snap angular reducido (era 30, demasiado agresivo)
 
 const INDICATOR_COLOR_ACTIVE   := Color(0.2, 0.9, 0.4)
 const INDICATOR_COLOR_INACTIVE := Color(0.5, 0.5, 0.5, 0.4)
@@ -243,11 +243,8 @@ func _get_hookable_parent(area: Area3D) -> Node3D:
 
 
 ## Obtiene el punto exacto de enganche segun el tipo de hookable.
-## FlexPole expone get_hook_point_position() para usar la punta real del palo.
-func _get_hook_point(area: Area3D, hookable: Node3D) -> Vector3:
-	if hookable is FlexPole and hookable.has_method("get_hook_point_position"):
-		return hookable.get_hook_point_position()
-	# HookRing y otros: usar la posicion del Area3D directamente
+## Para FlexPole, cada Area3D hijo ya esta a la altura correcta (low/mid/high).
+func _get_hook_point(area: Area3D, _hookable: Node3D) -> Vector3:
 	return area.global_position
 
 
