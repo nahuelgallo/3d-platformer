@@ -63,6 +63,8 @@ var slide_cooldown := 0.0  # Cooldown entre slides
 var _pre_move_y_velocity := 0.0  # Velocidad Y antes de move_and_slide (para calcular impacto del landing)
 var is_punching := false  # True durante la animacion de golpe, bloquea movimiento
 
+var bullet_time_ratio := 0.0  # 0.0 = sin bullet time, 1.0 = lleno. Los estados lo actualizan.
+
 var _target_camera_distance := 3.0
 var _target_camera_fov := 80.0
 var _camera_input_direction := Vector2.ZERO
@@ -175,6 +177,50 @@ func perform_jump() -> void:
 	_skin.jump()
 
 
+## Step-up: intenta subir micro-escalones antes de move_and_slide.
+## Solo usar en estados de suelo (walk, run, idle). En aire usar move_and_slide normal.
+const STEP_HEIGHT := 0.35
+
+func move_with_step_up() -> void:
+	if not is_on_floor():
+		move_and_slide()
+		return
+	var start_pos = global_position
+	var start_vel = velocity
+	# Intento normal
+	move_and_slide()
+	# Si choque con pared estando en el suelo, intentar step-up
+	var hit_wall = false
+	for i in get_slide_collision_count():
+		var col = get_slide_collision(i)
+		if col.get_normal().y < 0.1:
+			hit_wall = true
+			break
+	if not hit_wall:
+		return
+	# Guardar resultado del intento normal para comparar
+	var normal_pos = global_position
+	# Restaurar y re-intentar con step-up
+	global_position = start_pos
+	velocity = start_vel
+	# Subir
+	var up_col = move_and_collide(Vector3.UP * STEP_HEIGHT)
+	var actual_step = STEP_HEIGHT
+	if up_col:
+		actual_step = STEP_HEIGHT - up_col.get_remainder().length()
+	# Avanzar
+	move_and_slide()
+	# Bajar
+	move_and_collide(Vector3.DOWN * (actual_step + 0.05))
+	# Si no avanzo mas que el intento normal, revertir
+	var step_pos = global_position
+	var normal_advance = normal_pos.distance_squared_to(start_pos)
+	var step_advance = step_pos.distance_squared_to(start_pos)
+	if step_advance <= normal_advance:
+		global_position = normal_pos
+		velocity = start_vel
+
+
 ## Squash & stretch: deformacion temporal del modelo para dar "juiciness".
 func apply_squash_and_stretch(target_scale: Vector3) -> void:
 	var tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -242,10 +288,14 @@ func _on_arm_state_changed(new_state: String) -> void:
 				var arm = _arm_socket.current_arm
 				var attach_point = arm.get_attach_point() if arm.has_method("get_attach_point") else Vector3.ZERO
 				var rope_length = arm.get_rope_length() if arm.has_method("get_rope_length") else 5.0
+				var surface_normal = arm.get_surface_normal() if arm.has_method("get_surface_normal") else Vector3.DOWN
+				var hook_ring = arm.is_hook_ring() if arm.has_method("is_hook_ring") else false
 				if _state_machine:
 					_state_machine.transition_to("Hooked", {
 						"attach_point": attach_point,
-						"rope_length": rope_length
+						"rope_length": rope_length,
+						"surface_normal": surface_normal,
+						"is_hook_ring": hook_ring
 					})
 		"FlexPoleHooked":
 			if _arm_socket and _arm_socket.current_arm:

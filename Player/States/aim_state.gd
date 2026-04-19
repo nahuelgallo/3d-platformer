@@ -6,8 +6,12 @@ class_name AimState extends State
 
 const FRICTION := 19.0
 const ACCELERATION := 20.0
+const BULLET_TIME_SCALE := 0.25   # Misma escala que airborne bullet time
+const BULLET_TIME_DURATION := 1.5 # Duracion maxima del bullet time
 
 var player: CharacterBody3D
+var _bullet_time_active := false
+var _bullet_time_timer := 0.0
 
 
 func enter(_params := {}):
@@ -16,15 +20,27 @@ func enter(_params := {}):
 	player._target_camera_distance = player.camera_aim_distance
 	player._target_camera_fov = player.camera_aim_fov
 	Events.aim_started.emit()
+	# Activar bullet time al entrar en aim
+	_bullet_time_active = true
+	_bullet_time_timer = BULLET_TIME_DURATION
+	Engine.time_scale = BULLET_TIME_SCALE
 	# Animacion segun input actual
 	_update_animation()
 
 
 func exit():
+	_end_bullet_time()
 	Events.aim_ended.emit()
 
 
 func process_physics(delta: float):
+	# Bullet time timer (cuenta en tiempo real, no escalado)
+	if _bullet_time_active:
+		_bullet_time_timer -= delta / Engine.time_scale
+		player.bullet_time_ratio = clampf(_bullet_time_timer / BULLET_TIME_DURATION, 0.0, 1.0)
+		if _bullet_time_timer <= 0.0:
+			_end_bullet_time()
+
 	# Bloqueo durante animacion de aterrizaje o punch
 	if player._skin.is_landing or player.is_punching:
 		player.velocity.x = move_toward(player.velocity.x, 0.0, 25.0 * delta)
@@ -90,6 +106,13 @@ func process_physics(delta: float):
 
 	# Animaciones strafe
 	_update_animation()
+
+
+func _end_bullet_time():
+	if _bullet_time_active:
+		_bullet_time_active = false
+		Engine.time_scale = 1.0
+		player.bullet_time_ratio = 0.0
 
 
 ## Determina que animacion reproducir segun el input relativo a la camara.

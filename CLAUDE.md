@@ -352,12 +352,15 @@ Cada fase es testeable de forma independiente. Se prueba, se ajusta, y recien se
 | Slide Jump | 3 | NO HECHO |
 | Transferencia momentum diagonales | 2 | NO HECHO |
 | Control aereo limitado | 1 | PARCIAL |
-| Grappling Hook base | 7 | NO HECHO |
-| Swing / oscilacion | 8 | NO HECHO |
+| Grappling Hook base | 7 | HECHO (disparo, enganche, pendulo, wall recoil, floor pull) |
+| Swing / oscilacion | 8 | HECHO (pendulo con rope wrapping, subir/bajar cuerda) |
 | Elasticidad cuerda | 8 | NO HECHO |
-| Recoil + catapulta | 9 | NO HECHO |
+| Recoil + catapulta | 9 | PARCIAL (recoil con left click en pendulo, falta catapulta) |
+| Bullet time (aim) | - | HECHO (aim_state + airborne post-hook, 1.5s, 25% speed) |
 | Plataformas jump-thru | 6 | NO HECHO |
-| Aros de gancho (RING) | 6 | NO HECHO |
+| Aros de gancho (RING) | 6 | HECHO (HookRing con snap angular en crosshair) |
+| FlexPole | - | HECHO (poste flexible con enganche y lanzamiento) |
+| Hook Crosshair | - | HECHO (mira con snap angular, indicador 3D torus) |
 
 ---
 
@@ -392,11 +395,15 @@ slide_jump_v_boost   = 1.10       # POR IMPLEMENTAR (+8-10%)
 explosive_phase_ms   = 200        # POR IMPLEMENTAR
 
 # === GRAPPLING HOOK ===
-hook_charge_max      = 1.5        # POR IMPLEMENTAR
-hook_speed           = 40.0       # POR IMPLEMENTAR
-hook_max_distance    = 20.0       # POR IMPLEMENTAR
+hook_charge_max      = 1.5        # IMPLEMENTADO (CHARGE_TIME en grappling_hook_arm.gd)
+hook_speed           = 80.0       # IMPLEMENTADO (era 40, subido a 80)
+hook_max_distance    = 20.0       # IMPLEMENTADO
 rope_elasticity      = 0.15       # POR IMPLEMENTAR
-recoil_speed         = 25.0       # POR IMPLEMENTAR
+recoil_speed         = 25.0       # IMPLEMENTADO (RECOIL_SPEED en hooked_state.gd)
+
+# === BULLET TIME ===
+bullet_time_scale    = 0.25       # IMPLEMENTADO (25% velocidad, en aim_state y airborne_state)
+bullet_time_duration = 1.5        # IMPLEMENTADO (1.5s reales max)
 
 # === CAMARA ===
 fov_default          = 80
@@ -435,13 +442,24 @@ camera_lerp_speed    = 5.0
 
 ## Estado Actual
 
-**Fase activa:** Ledge Grab (mecanica extra, fuera de fases numeradas)
-**Ultima tarea:** Scripts de ledge grab creados (ledge_grab_state.gd nuevo, airborne_state.gd modificado con deteccion de cornisas)
-**Pendiente en Godot editor:**
+**Fase activa:** Bionic Commando Hook System (branch: feature/bionic-commando-hook)
+**Ultima tarea:** Ajustes de game feel al grappling hook
+- HOOK_SPEED subido de 40 a 80 (proyectil viaja al doble de velocidad)
+- Bullet time (camara lenta) agregado a AimState (right click en suelo activa slow-mo, 1.5s max, 25% velocidad)
+- Bullet time ya existia en AirborneState post-hook; ahora tambien funciona al apuntar desde el suelo
+
+**Pendiente / Bugs conocidos:**
+- Transicion brusca al engancharse en pendulo (player se teletransporta a posicion acortada de cuerda)
+- Player choca con el piso al engancharse a techos/paredes altas (AUTO_RETRACT_RATIO 75% no alcanza)
+- Left click en pendulo impulsa al player (recoil) en vez de re-lanzar hook
+- Micro-escalones en el suelo bloquean al player (floor_snap_length=0.05 muy bajo)
+- Falta barra de UI mostrando tiempo restante de bullet time
+
+**Pendiente en Godot editor (de sesiones anteriores):**
 - Agregar nodo `LedgeGrab` (tipo Node) bajo `PlayerStateMachine` en la escena del player
 - Asignar script `res://Player/States/ledge_grab_state.gd`
 - Sin ese nodo, la state machine no encuentra el estado y el ledge grab no funciona
-**Siguiente paso:** Testear ledge grab en nivel de prueba (test_level.tscn), ajustar constantes (PLAYER_HEIGHT, SNAP_OFFSET, alturas de raycast) segun el tamaño real del player.
+**Siguiente paso:** Resolver los 5 bugs/ajustes pendientes del hook system.
 
 **Notas de nivel:**
 - NO usar `Use Collision` de CSG para suelos/plataformas (trimesh genera micro-paredes en bordes)

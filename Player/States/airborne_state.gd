@@ -33,6 +33,9 @@ var _from_hook := false         # Si viene de un hook/pole launch
 var _hook_floaty_timer := 0.0   # Timer de gravedad reducida post-hook
 var _bullet_time_active := false # Bullet time activo
 var _bullet_time_timer := 0.0   # Timer de bullet time restante
+var _crouch_tap_count := 0      # Cantidad de taps de crouch para fast fall
+var _crouch_tap_timer := 0.0    # Timer para detectar doble tap
+const DOUBLE_TAP_WINDOW := 0.35 # Ventana de tiempo para doble tap
 
 
 func enter(params := {}):
@@ -42,8 +45,10 @@ func enter(params := {}):
 	# Anti re-grab: evita agarrar cornisa inmediatamente despues de soltar
 	_skip_ledge_grab = params.get("skip_ledge_grab", false)
 	_skip_ledge_timer = SKIP_LEDGE_DURATION if _skip_ledge_grab else 0.0
-	# Air dash solo disponible en saltos normales (no slide jump, no dash boost)
-	_did_air_dash = params.get("boosted", false)
+	# Air dash: disponible si no viene de slide jump o dash directo
+	# Desde hook/pole (from_hook=true) el dash SI esta disponible
+	var from_hook = params.get("from_hook", false)
+	_did_air_dash = params.get("boosted", false) and not from_hook
 	_from_slide_jump = params.get("from_slide_jump", false)
 	_chain_count = params.get("chain_count", 0)
 
@@ -60,6 +65,8 @@ func enter(params := {}):
 	_hook_floaty_timer = HOOK_FLOATY_DURATION if _from_hook else 0.0
 	_bullet_time_active = false
 	_bullet_time_timer = 0.0
+	_crouch_tap_count = 0
+	_crouch_tap_timer = 0.0
 
 	# Camara alejada y FOV amplio durante slide jump
 	if params.get("boosted", false) or _from_slide_jump:
@@ -96,10 +103,19 @@ func process_physics(delta: float):
 	if Input.is_action_just_released("jump") and player.velocity.y > 0.0:
 		player.velocity.y *= player.jump_cut_multiplier
 
-	# Fast drop: agacharse en el aire = caida rapida
-	if Abilities.fast_drop_unlocked and Input.is_action_just_pressed("crouch"):
-		player.velocity.y = FAST_DROP_SPEED
-		_did_fast_drop = true
+	# Fast fall: doble tap de crouch en el aire = caida rapida
+	if _crouch_tap_timer > 0.0:
+		_crouch_tap_timer -= delta
+	else:
+		_crouch_tap_count = 0
+
+	if Input.is_action_just_pressed("crouch") and not _did_fast_drop:
+		_crouch_tap_count += 1
+		_crouch_tap_timer = DOUBLE_TAP_WINDOW
+		if _crouch_tap_count >= 2:
+			player.velocity.y = FAST_DROP_SPEED
+			_did_fast_drop = true
+			_crouch_tap_count = 0
 
 	# Air dash: sprint en el aire = impulso horizontal (una vez por salto, consume estamina)
 	if Abilities.dash_unlocked and Input.is_action_just_pressed("sprint") and not _did_air_dash and Stamina.try_consume(0.5):
@@ -151,6 +167,7 @@ func process_physics(delta: float):
 	# Desactivar bullet time al soltar right_click, disparar hook, o agotar timer
 	if _bullet_time_active:
 		_bullet_time_timer -= delta / Engine.time_scale  # Timer en tiempo real
+		player.bullet_time_ratio = clampf(_bullet_time_timer / BULLET_TIME_DURATION, 0.0, 1.0)
 		if Input.is_action_just_released("right_click") or _bullet_time_timer <= 0.0:
 			_end_bullet_time()
 
@@ -306,3 +323,4 @@ func _end_bullet_time():
 	if _bullet_time_active:
 		_bullet_time_active = false
 		Engine.time_scale = 1.0
+		player.bullet_time_ratio = 0.0

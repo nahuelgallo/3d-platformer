@@ -7,7 +7,7 @@ class_name GrapplingHookArm extends ArmBase
 
 enum HookState { IDLE, CHARGING, FLYING, ATTACHED }
 
-const HOOK_SPEED := 40.0
+const HOOK_SPEED := 80.0
 const HOOK_MIN_DISTANCE := 5.0   # Distancia minima (sin cargar)
 const HOOK_MAX_DISTANCE := 20.0  # Distancia maxima (carga completa)
 const CHARGE_TIME := 1.5         # Segundos para carga completa
@@ -16,6 +16,8 @@ var _state := HookState.IDLE
 var _projectile: HookProjectile
 var _rope: RopeVisual
 var _attach_point := Vector3.ZERO
+var _surface_normal := Vector3.DOWN  # Normal de la superficie donde se engancho
+var _is_hook_ring := false           # Si se engancho a un HookRing (siempre pendulo)
 var _attached_collider: Node = null
 var _charge_timer := 0.0
 var _current_max_distance := 0.0  # Distancia calculada segun carga
@@ -108,14 +110,17 @@ func _raycast_target_point(charge_ratio: float) -> Vector3:
 	return ray_origin + ray_dir * _current_max_distance
 
 
-func _on_hook_hit(hit_position: Vector3, collider: Node) -> void:
+func _on_hook_hit(hit_position: Vector3, collider: Node, hit_normal: Vector3) -> void:
 	_state = HookState.ATTACHED
 	_attach_point = hit_position
+	_surface_normal = hit_normal
 	_attached_collider = collider
 	var rope_length = player.global_position.distance_to(_attach_point)
 
-	# Detectar si el collider es un FlexPole
+	# Detectar tipo de collider
 	var flex_pole = _find_flex_pole(collider)
+	_is_hook_ring = _find_hook_ring(collider)
+
 	if flex_pole:
 		Events.pole_grabbed.emit(hit_position)
 		arm_state_changed.emit("FlexPoleHooked")
@@ -123,7 +128,23 @@ func _on_hook_hit(hit_position: Vector3, collider: Node) -> void:
 	else:
 		Events.hook_attached.emit(hit_position)
 		arm_state_changed.emit("Hooked")
-		print("GrapplingHook: enganchado en %s (distancia: %.1f)" % [hit_position, rope_length])
+		print("GrapplingHook: enganchado en %s (ring=%s, normal: %s)" % [hit_position, _is_hook_ring, hit_normal])
+
+
+## Busca si el collider o su padre es un HookRing
+func _find_hook_ring(collider: Node) -> bool:
+	if collider is HookRing:
+		return true
+	var parent = collider.get_parent()
+	while parent:
+		if parent is HookRing:
+			return true
+		parent = parent.get_parent()
+	return false
+
+
+func is_hook_ring() -> bool:
+	return _is_hook_ring
 
 
 ## Busca si el collider o su padre es un FlexPole
@@ -174,6 +195,10 @@ func get_rope_length() -> float:
 
 func get_attached_collider() -> Node:
 	return _attached_collider
+
+
+func get_surface_normal() -> Vector3:
+	return _surface_normal
 
 
 func _physics_process(delta: float):
