@@ -167,6 +167,7 @@ func process_physics(delta: float):
 	# Desactivar bullet time al soltar right_click, disparar hook, o agotar timer
 	if _bullet_time_active:
 		_bullet_time_timer -= delta / Engine.time_scale  # Timer en tiempo real
+		player.bullet_time_ratio = clampf(_bullet_time_timer / BULLET_TIME_DURATION, 0.0, 1.0)
 		if Input.is_action_just_released("right_click") or _bullet_time_timer <= 0.0:
 			_end_bullet_time()
 
@@ -322,3 +323,4 @@ func _end_bullet_time():
 	if _bullet_time_active:
 		_bullet_time_active = false
 		Engine.time_scale = 1.0
+		player.bullet_time_ratio = 0.0

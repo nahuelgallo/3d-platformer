@@ -37,6 +37,7 @@ func process_physics(delta: float):
 	# Bullet time timer (cuenta en tiempo real, no escalado)
 	if _bullet_time_active:
 		_bullet_time_timer -= delta / Engine.time_scale
+		player.bullet_time_ratio = clampf(_bullet_time_timer / BULLET_TIME_DURATION, 0.0, 1.0)
 		if _bullet_time_timer <= 0.0:
 			_end_bullet_time()
 
@@ -111,6 +112,7 @@ func _end_bullet_time():
 	if _bullet_time_active:
 		_bullet_time_active = false
 		Engine.time_scale = 1.0
+		player.bullet_time_ratio = 0.0
 
 
 ## Determina que animacion reproducir segun el input relativo a la camara.

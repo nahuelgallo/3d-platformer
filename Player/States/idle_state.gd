@@ -56,9 +56,9 @@ func process_physics(delta: float):
 		state_machine.transition_to("Airborne", {"jumped": true})
 		return
 
-	# Mover
+	# Mover (con step-up para micro-escalones)
 	player._pre_move_y_velocity = player.velocity.y
-	player.move_and_slide()
+	player.move_with_step_up()
 	player.rotate_skin(delta)
 
 	# Transiciones

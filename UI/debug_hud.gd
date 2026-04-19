@@ -13,6 +13,9 @@ extends CanvasLayer
 var player: CharacterBody3D
 var _arm_canvas: CanvasLayer
 var _arm_label: Label
+var _bt_canvas: CanvasLayer     # Bullet time UI (siempre visible)
+var _bt_bar_bg: ColorRect
+var _bt_bar_fill: ColorRect
 
 const OPACITY_LOCKED := 0.25
 const OPACITY_COOLDOWN := 0.5
@@ -50,6 +53,27 @@ func _ready():
 	_arm_label.add_theme_constant_override("shadow_offset_y", 2)
 	_arm_canvas.add_child(_arm_label)
 
+	# Barra de bullet time (centrada abajo, siempre visible cuando activa)
+	_bt_canvas = CanvasLayer.new()
+	_bt_canvas.name = "BulletTimeCanvas"
+	_bt_canvas.layer = 99
+	get_parent().add_child.call_deferred(_bt_canvas)
+
+	_bt_bar_bg = ColorRect.new()
+	_bt_bar_bg.name = "BulletTimeBG"
+	_bt_bar_bg.color = Color(0.1, 0.1, 0.1, 0.6)
+	_bt_bar_bg.size = Vector2(200, 8)
+	_bt_bar_bg.position = Vector2(-100, -40)  # Se reposiciona en _process
+	_bt_bar_bg.visible = false
+	_bt_canvas.add_child.call_deferred(_bt_bar_bg)
+
+	_bt_bar_fill = ColorRect.new()
+	_bt_bar_fill.name = "BulletTimeFill"
+	_bt_bar_fill.color = Color(0.3, 0.8, 1.0, 0.9)
+	_bt_bar_fill.size = Vector2(200, 8)
+	_bt_bar_fill.position = Vector2.ZERO
+	_bt_bar_bg.add_child.call_deferred(_bt_bar_fill)
+
 func _unhandled_input(event: InputEvent):
 	# F3 para mostrar/ocultar el HUD de debug
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
@@ -63,6 +87,8 @@ func _process(_delta: float):
 	_update_ability_icons()
 	# Brazo activo (siempre visible)
 	_update_arm_label()
+	# Barra de bullet time
+	_update_bullet_time_bar()
 
 	if not visible:
 		return
@@ -125,6 +151,22 @@ func _update_arm_label():
 			_:
 				arm_text = "🔧 %s" % arm_name
 	_arm_label.text = "[Q] %s" % arm_text
+
+
+func _update_bullet_time_bar():
+	if not _bt_bar_bg or not _bt_bar_fill:
+		return
+	var ratio = player.bullet_time_ratio if player else 0.0
+	if ratio > 0.0:
+		_bt_bar_bg.visible = true
+		# Centrar abajo de la pantalla
+		var vp_size = _bt_bar_bg.get_viewport_rect().size
+		_bt_bar_bg.position = Vector2((vp_size.x - 200) * 0.5, vp_size.y - 50)
+		_bt_bar_fill.size.x = 200.0 * ratio
+		# Color: cyan -> rojo cuando se acaba
+		_bt_bar_fill.color = Color(0.3, 0.8, 1.0).lerp(Color(1.0, 0.2, 0.2), 1.0 - ratio)
+	else:
+		_bt_bar_bg.visible = false
 
 
 func _set_icon(icon: Label, emoji: String, unlocked: bool, ready: bool):

@@ -26,11 +26,14 @@ const FLOOR_PULL_GRAVITY_MULT := 2.5
 const ARRIVAL_DISTANCE := 1.5     # Distancia a la que se considera "llegado" al punto
 const PENDULUM_DAMPING := 0.995   # Damping por frame, muy suave para no frenar el swing
 const AUTO_RETRACT_RATIO := 0.75  # Al engancharse, acortar cuerda al 75% para no chocar con el piso
+const MIN_GROUND_CLEARANCE := 2.0 # Metros minimos entre el jugador colgado y el piso
+const RETRACT_LERP_SPEED := 4.0   # Velocidad de acortamiento suave de la cuerda
 const PENDULUM_STEP_HEIGHT := 0.5 # Altura de escalon que puede subir pendulando
 
 var player: CharacterBody3D
 var _attach_point := Vector3.ZERO
 var _rope_length := 0.0
+var _target_rope_length := 0.0    # Largo objetivo (para lerp suave)
 var _surface_normal := Vector3.DOWN
 var _mode := HookMode.PENDULUM
 var _rope_wrap: RopeWrap = null
@@ -54,15 +57,30 @@ func enter(params := {}):
 	else:
 		_mode = HookMode.WALL_RECOIL
 
-	# Auto-retract: acortar la cuerda para elevar al jugador y evitar que choque con el piso
+	# Auto-retract: calcular largo objetivo que garantiza clearance sobre el piso
 	if _mode == HookMode.PENDULUM:
-		_rope_length *= AUTO_RETRACT_RATIO
+		_target_rope_length = _rope_length * AUTO_RETRACT_RATIO
+		# Raycast hacia abajo desde el attach point para encontrar el suelo
+		var space = player.get_world_3d().direct_space_state
+		var query = PhysicsRayQueryParameters3D.create(
+			_attach_point, _attach_point + Vector3.DOWN * 100.0
+		)
+		query.collision_mask = 1  # Solo world geometry
+		query.exclude = [player.get_rid()]
+		var result = space.intersect_ray(query)
+		if result:
+			var ground_y: float = result.position.y
+			var max_rope_for_clearance = _attach_point.y - ground_y - MIN_GROUND_CLEARANCE
+			if max_rope_for_clearance > MIN_ROPE_LENGTH:
+				_target_rope_length = minf(_target_rope_length, max_rope_for_clearance)
+		# NO acortar instantaneamente — _rope_length se lerpa en _process_pendulum
+	else:
+		_target_rope_length = _rope_length
 
 	# Inicializar rope wrapping (solo para pendulo, los otros modos son cortos)
 	if _mode == HookMode.PENDULUM:
 		_rope_wrap = RopeWrap.new()
 		_rope_wrap.initialize(_attach_point, player.global_position)
-		# Ajustar el total_rope_length del wrap al largo acortado
 		_rope_wrap.total_rope_length = _rope_length
 	else:
 		_rope_wrap = null
@@ -85,8 +103,8 @@ func enter(params := {}):
 func exit():
 	player._target_camera_distance = player.camera_default_distance
 	player._target_camera_fov = player.camera_default_fov
-	# Restaurar tolerancia de escalones
-	player.floor_snap_length = 0.1
+	# Restaurar tolerancia de escalones al default del player
+	player.floor_snap_length = 0.4
 	player.floor_max_angle = deg_to_rad(45.0)
 	_rope_wrap = null
 
@@ -107,13 +125,13 @@ func process_physics(delta: float):
 
 	# --- TRANSICIONES COMUNES ---
 
-	# Recoil manual: left click lanza hacia el attach point (solo en pendulo)
+	# Re-lanzar hook: left click suelta el actual y empieza a cargar uno nuevo
 	if _mode == HookMode.PENDULUM and Input.is_action_just_pressed("left_click"):
-		var pivot = _get_current_pivot()
-		var recoil_dir = (pivot - player.global_position).normalized()
-		player.velocity = recoil_dir * RECOIL_SPEED
 		_notify_arm_release()
-		state_machine.transition_to("Airborne", {"jumped": true, "boosted": true, "from_hook": true})
+		state_machine.transition_to("Airborne", {"jumped": false, "from_hook": true})
+		# Disparar primary_action inmediatamente para empezar a cargar el nuevo hook
+		if player._arm_socket:
+			player._arm_socket.primary_action()
 		return
 
 	# Wall cling: left click suelta para poder re-lanzar hook
@@ -151,15 +169,23 @@ func process_physics(delta: float):
 ## PENDULUM — Techo/overhang: swing clasico con rope wrapping
 ## ============================================================
 func _process_pendulum(delta: float):
+	# Retraccion suave: lerp de rope_length hacia target
+	if _rope_length > _target_rope_length + 0.1:
+		_rope_length = lerpf(_rope_length, _target_rope_length, RETRACT_LERP_SPEED * delta)
+		if _rope_wrap:
+			_rope_wrap.total_rope_length = _rope_length
+
 	# Gravedad
 	player.apply_gravity(delta)
 
-	# Subir/bajar cuerda
+	# Subir/bajar cuerda (modifica el target tambien)
 	if Input.is_action_pressed("sprint"):
+		_target_rope_length = max(_target_rope_length - CLIMB_SPEED * delta, MIN_ROPE_LENGTH)
 		_rope_length = max(_rope_length - CLIMB_SPEED * delta, MIN_ROPE_LENGTH)
 		if _rope_wrap:
 			_rope_wrap.total_rope_length = _rope_length
 	elif Input.is_action_pressed("crouch"):
+		_target_rope_length += CLIMB_SPEED * delta
 		_rope_length += CLIMB_SPEED * delta
 		if _rope_wrap:
 			_rope_wrap.total_rope_length = _rope_length
