@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://sho6mw73y4pw" path="res://Player/robot_skin/robot_skin.tscn" id="1_0qcnn"]
 [ext_resource type="Script" uid="uid://ct6pbgoo5blwq" path="res://Player/player_3dEdited1.gd" id="1_cp0cc"]
 [ext_resource type="PackedScene" path="res://UI/debug_hud.tscn" id="3_debug"]
+[ext_resource type="PackedScene" uid="uid://dtutorial0001" path="res://UI/tutorial_window.tscn" id="3_tutorial"]
 [ext_resource type="Script" uid="uid://dfg60rtulxv8h" path="res://Core/StateMachine/state_machine.gd" id="4_443md"]
 [ext_resource type="PackedScene" uid="uid://drcrosshair01" path="res://UI/crosshair.tscn" id="4_xgipm"]
 [ext_resource type="Script" uid="uid://dj422i342nrab" path="res://Player/States/idle_state.gd" id="5_p1it8"]
@@ -34,7 +35,7 @@ height = 0.8
 collision_layer = 7
 collision_mask = 5
 floor_block_on_wall = false
-floor_snap_length = 0.05
+floor_snap_length = 0.4
 script = ExtResource("1_cp0cc")
 
 [node name="RobotSkin" parent="." unique_id=1923158414 instance=ExtResource("1_0qcnn")]
@@ -59,6 +60,8 @@ unique_name_in_owner = true
 fov = 80.0
 
 [node name="DebugHUD" parent="." unique_id=1731862274 instance=ExtResource("3_debug")]
+
+[node name="TutorialWindow" parent="." instance=ExtResource("3_tutorial")]
 
 [node name="Crosshair" parent="." unique_id=66259039 instance=ExtResource("4_xgipm")]
 
