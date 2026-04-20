@@ -63,6 +63,7 @@ Plataformero 3D con movimiento estilo Mario Odyssey en suelo (versatil, muchas o
 │
 └── UI/
     ├── debug_hud.tscn                 # HUD de debug (velocidad, estado, fps)
+    ├── tutorial_window.tscn           # Ventana de controles/mecanicas (toggle con tecla 0)
     └── flag_reached_screen.tscn
 ```
 
@@ -442,24 +443,32 @@ camera_lerp_speed    = 5.0
 
 ## Estado Actual
 
-**Fase activa:** Bionic Commando Hook System (branch: feature/bionic-commando-hook)
-**Ultima tarea:** Ajustes de game feel al grappling hook
-- HOOK_SPEED subido de 40 a 80 (proyectil viaja al doble de velocidad)
-- Bullet time (camara lenta) agregado a AimState (right click en suelo activa slow-mo, 1.5s max, 25% velocidad)
-- Bullet time ya existia en AirborneState post-hook; ahora tambien funciona al apuntar desde el suelo
+**Repo:** https://github.com/nahuelgallo/3d-platformer (PUBLICO)
+**Rama default:** master (feature/bionic-commando-hook ya mergeada)
+**Fase activa:** Bionic Commando Hook System + UX/tutorial
 
-**Pendiente / Bugs conocidos:**
+**Ultima sesion (2026-04-20):**
+- Ventana de tutorial en `UI/tutorial_window.{gd,tscn}` con toggle en tecla `0`
+  - CanvasLayer layer=120, pausa el juego (`get_tree().paused`) y libera el mouse al abrir
+  - Secciones definidas en `SECTIONS` dentro del script (movimiento / hook / mecanicas / sistema)
+  - `process_mode = PROCESS_MODE_ALWAYS` para que el toggle funcione durante pause
+  - Instanciada en `Player/player_3d.tscn` junto al DebugHUD
+- Input `toggle_tutorial` agregado en `project.godot` (physical_keycode 48)
+- Fix: `floor_snap_length` del Player subido de 0.05 a 0.4 (adios a los micro-escalones)
+- Barra de bullet time agregada al DebugHUD (cyan->rojo segun tiempo restante, centrada abajo)
+- Repo hecho publico y ramas mergeadas a master
+
+**Pendiente / Bugs conocidos del hook:**
 - Transicion brusca al engancharse en pendulo (player se teletransporta a posicion acortada de cuerda)
 - Player choca con el piso al engancharse a techos/paredes altas (AUTO_RETRACT_RATIO 75% no alcanza)
 - Left click en pendulo impulsa al player (recoil) en vez de re-lanzar hook
-- Micro-escalones en el suelo bloquean al player (floor_snap_length=0.05 muy bajo)
-- Falta barra de UI mostrando tiempo restante de bullet time
 
 **Pendiente en Godot editor (de sesiones anteriores):**
 - Agregar nodo `LedgeGrab` (tipo Node) bajo `PlayerStateMachine` en la escena del player
 - Asignar script `res://Player/States/ledge_grab_state.gd`
 - Sin ese nodo, la state machine no encuentra el estado y el ledge grab no funciona
-**Siguiente paso:** Resolver los 5 bugs/ajustes pendientes del hook system.
+
+**Siguiente paso:** Resolver los 3 bugs restantes del pendulo y transicion del hook.
 
 **Notas de nivel:**
 - NO usar `Use Collision` de CSG para suelos/plataformas (trimesh genera micro-paredes en bordes)
